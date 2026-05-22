@@ -14,6 +14,7 @@ class PerceptronServiceTests(unittest.TestCase):
         weights = WeightNode(0.5, WeightNode(1.5, WeightNode(-1.0)))
         perceptron = PerceptronService(weights, bias=0.25, threshold=1.0)
 
+        self.assertEqual(perceptron.dot_product([2, 1, 0.5]), 2.0)
         self.assertEqual(perceptron.weighted_sum([2, 1, 0.5]), 2.25)
         self.assertEqual(perceptron.predict([2, 1, 0.5]), 1)
 

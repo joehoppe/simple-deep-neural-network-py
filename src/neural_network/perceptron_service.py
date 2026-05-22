@@ -42,8 +42,8 @@ class PerceptronService:
         weighted_sum = self.weighted_sum(inputs)
         return self._validate_number(self.activation_function(weighted_sum), "activation output")
 
-    def weighted_sum(self, inputs: Iterable[float]) -> float:
-        total = self.bias
+    def dot_product(self, inputs: Iterable[float]) -> float:
+        total = 0.0
         input_iterator = iter(inputs)
         current_weight = self.weights
 
@@ -63,6 +63,9 @@ class PerceptronService:
             return total
 
         raise ValueError("Too many input values for the linked list of weights.")
+
+    def weighted_sum(self, inputs: Iterable[float]) -> float:
+        return self.dot_product(inputs) + self.bias
 
     @staticmethod
     def from_weights(
