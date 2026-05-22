@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from numbers import Real
-from typing import Iterable, Optional, Protocol, runtime_checkable
+from typing import Callable, Iterable, Optional, Protocol, runtime_checkable
+
+
+ActivationFunction = Callable[[float], float]
 
 
 @runtime_checkable
@@ -21,16 +24,23 @@ class WeightNode:
 
 
 class PerceptronService:
-    """Service for computing a single perceptron neuron's binary output."""
+    """Service for computing a single perceptron neuron's activated output."""
 
-    def __init__(self, weights: Optional[LinkedListNode], bias: float = 0.0, threshold: float = 0.0):
+    def __init__(
+        self,
+        weights: Optional[LinkedListNode],
+        bias: float = 0.0,
+        threshold: float = 0.0,
+        activation_function: Optional[ActivationFunction] = None,
+    ):
         self.weights = weights
         self.bias = self._validate_number(bias, "bias")
         self.threshold = self._validate_number(threshold, "threshold")
+        self.activation_function = self._validate_activation_function(activation_function)
 
-    def predict(self, inputs: Iterable[float]) -> int:
+    def predict(self, inputs: Iterable[float]) -> float:
         weighted_sum = self.weighted_sum(inputs)
-        return 1 if weighted_sum >= self.threshold else 0
+        return self._validate_number(self.activation_function(weighted_sum), "activation output")
 
     def weighted_sum(self, inputs: Iterable[float]) -> float:
         total = self.bias
@@ -55,13 +65,18 @@ class PerceptronService:
         raise ValueError("Too many input values for the linked list of weights.")
 
     @staticmethod
-    def from_weights(weights: Iterable[float], bias: float = 0.0, threshold: float = 0.0) -> "PerceptronService":
+    def from_weights(
+        weights: Iterable[float],
+        bias: float = 0.0,
+        threshold: float = 0.0,
+        activation_function: Optional[ActivationFunction] = None,
+    ) -> "PerceptronService":
         head: Optional[WeightNode] = None
 
         for weight in reversed(list(weights)):
             head = WeightNode(PerceptronService._validate_number(weight, "weight"), head)
 
-        return PerceptronService(head, bias=bias, threshold=threshold)
+        return PerceptronService(head, bias=bias, threshold=threshold, activation_function=activation_function)
 
     @staticmethod
     def _node_value(node: LinkedListNode) -> float:
@@ -79,3 +94,17 @@ class PerceptronService:
             raise TypeError(f"{name} must be a real number.")
 
         return float(value)
+
+    def _default_activation_function(self, weighted_sum: float) -> float:
+        return 1.0 if weighted_sum >= self.threshold else 0.0
+
+    def _validate_activation_function(
+        self, activation_function: Optional[ActivationFunction]
+    ) -> ActivationFunction:
+        if activation_function is None:
+            return self._default_activation_function
+
+        if not callable(activation_function):
+            raise TypeError("activation_function must be callable.")
+
+        return activation_function

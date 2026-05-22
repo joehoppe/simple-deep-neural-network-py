@@ -28,6 +28,24 @@ class PerceptronServiceTests(unittest.TestCase):
 
         self.assertEqual(perceptron.weighted_sum([4, 5]), 23.0)
 
+    def test_predict_uses_injected_activation_function(self):
+        weights = WeightNode(0.5, WeightNode(1.5))
+        perceptron = PerceptronService(
+            weights,
+            bias=0.25,
+            activation_function=lambda total: total * 2,
+        )
+
+        self.assertEqual(perceptron.predict([2, 1]), 5.5)
+
+    def test_from_weights_accepts_injected_activation_function(self):
+        perceptron = PerceptronService.from_weights(
+            [1, -1],
+            activation_function=lambda total: max(0.0, total),
+        )
+
+        self.assertEqual(perceptron.predict([2, 3]), 0.0)
+
     def test_rejects_input_count_mismatch(self):
         perceptron = PerceptronService.from_weights([1, 2])
 
@@ -39,6 +57,16 @@ class PerceptronServiceTests(unittest.TestCase):
 
     def test_rejects_non_numeric_weights(self):
         perceptron = PerceptronService(WeightNode("bad"))
+
+        with self.assertRaises(TypeError):
+            perceptron.predict([1])
+
+    def test_rejects_non_callable_activation_function(self):
+        with self.assertRaises(TypeError):
+            PerceptronService.from_weights([1], activation_function=1)
+
+    def test_rejects_non_numeric_activation_output(self):
+        perceptron = PerceptronService.from_weights([1], activation_function=lambda total: "bad")
 
         with self.assertRaises(TypeError):
             perceptron.predict([1])
