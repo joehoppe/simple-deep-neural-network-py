@@ -111,3 +111,27 @@ class PerceptronService:
             raise TypeError("activation_function must be callable.")
 
         return activation_function
+
+
+class LayerService:
+    """Service for computing the outputs of a layer of perceptrons."""
+
+    def __init__(self, perceptrons: Iterable[PerceptronService]):
+        self.perceptrons = self._validate_perceptrons(perceptrons)
+
+    def predict(self, inputs: Iterable[float]) -> list[float]:
+        input_values = list(inputs)
+        return [perceptron.predict(input_values) for perceptron in self.perceptrons]
+
+    @staticmethod
+    def _validate_perceptrons(perceptrons: Iterable[PerceptronService]) -> list[PerceptronService]:
+        if perceptrons is None:
+            raise TypeError("perceptrons must be an iterable of PerceptronService instances.")
+
+        perceptron_list = list(perceptrons)
+
+        for perceptron in perceptron_list:
+            if not isinstance(perceptron, PerceptronService):
+                raise TypeError("perceptrons must contain only PerceptronService instances.")
+
+        return perceptron_list
