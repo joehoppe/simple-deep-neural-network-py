@@ -1,3 +1,11 @@
-from neural_network.perceptron_service import LayerService, PerceptronService, WeightNode
+from neural_network.perceptron import (
+    Perceptron,
+    PerceptronLayer,
+    WeightNode,
+)
 
-__all__ = ["LayerService", "PerceptronService", "WeightNode"]
+__all__ = [
+    "Perceptron",
+    "PerceptronLayer",
+    "WeightNode",
+]

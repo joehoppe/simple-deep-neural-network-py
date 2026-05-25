@@ -10,7 +10,7 @@ ActivationFunction = Callable[[float], float]
 
 @runtime_checkable
 class LinkedListNode(Protocol):
-    """Protocol for linked-list nodes accepted by PerceptronService."""
+    """Protocol for linked-list nodes accepted by Perceptron."""
 
     next: Optional["LinkedListNode"]
 
@@ -23,8 +23,8 @@ class WeightNode:
     next: Optional["WeightNode"] = None
 
 
-class PerceptronService:
-    """Service for computing a single perceptron neuron's activated output."""
+class Perceptron:
+    """Compute a single perceptron neuron's activated output."""
 
     def __init__(
         self,
@@ -33,10 +33,18 @@ class PerceptronService:
         threshold: float = 0.0,
         activation_function: Optional[ActivationFunction] = None,
     ):
-        self.weights = weights
+        self.weight_head = weights
         self.bias = self._validate_number(bias, "bias")
         self.threshold = self._validate_number(threshold, "threshold")
         self.activation_function = self._validate_activation_function(activation_function)
+
+    @property
+    def weights(self) -> Optional[LinkedListNode]:
+        return self.weight_head
+
+    @weights.setter
+    def weights(self, weights: Optional[LinkedListNode]) -> None:
+        self.weight_head = weights
 
     def predict(self, inputs: Iterable[float]) -> float:
         weighted_sum = self.weighted_sum(inputs)
@@ -45,17 +53,17 @@ class PerceptronService:
     def dot_product(self, inputs: Iterable[float]) -> float:
         total = 0.0
         input_iterator = iter(inputs)
-        current_weight = self.weights
+        current_node = self.weight_head
 
-        while current_weight is not None:
+        while current_node is not None:
             try:
                 input_value = next(input_iterator)
             except StopIteration as exc:
                 raise ValueError("Not enough input values for the linked list of weights.") from exc
 
-            weight_value = self._node_value(current_weight)
+            weight_value = self._node_value(current_node)
             total += weight_value * self._validate_number(input_value, "input")
-            current_weight = current_weight.next
+            current_node = current_node.next
 
         try:
             next(input_iterator)
@@ -73,21 +81,21 @@ class PerceptronService:
         bias: float = 0.0,
         threshold: float = 0.0,
         activation_function: Optional[ActivationFunction] = None,
-    ) -> "PerceptronService":
+    ) -> "Perceptron":
         head: Optional[WeightNode] = None
 
         for weight in reversed(list(weights)):
-            head = WeightNode(PerceptronService._validate_number(weight, "weight"), head)
+            head = WeightNode(Perceptron._validate_number(weight, "weight"), head)
 
-        return PerceptronService(head, bias=bias, threshold=threshold, activation_function=activation_function)
+        return Perceptron(head, bias=bias, threshold=threshold, activation_function=activation_function)
 
     @staticmethod
     def _node_value(node: LinkedListNode) -> float:
         if hasattr(node, "value"):
-            return PerceptronService._validate_number(getattr(node, "value"), "weight")
+            return Perceptron._validate_number(getattr(node, "value"), "weight")
 
         if hasattr(node, "data"):
-            return PerceptronService._validate_number(getattr(node, "data"), "weight")
+            return Perceptron._validate_number(getattr(node, "data"), "weight")
 
         raise TypeError("Weight nodes must expose a numeric 'value' or 'data' attribute.")
 
@@ -113,10 +121,10 @@ class PerceptronService:
         return activation_function
 
 
-class LayerService:
-    """Service for computing the outputs of a layer of perceptrons."""
+class PerceptronLayer:
+    """Compute the outputs of a layer of perceptrons."""
 
-    def __init__(self, perceptrons: Iterable[PerceptronService]):
+    def __init__(self, perceptrons: Iterable[Perceptron]):
         self.perceptrons = self._validate_perceptrons(perceptrons)
 
     def predict(self, inputs: Iterable[float]) -> list[float]:
@@ -124,14 +132,14 @@ class LayerService:
         return [perceptron.predict(input_values) for perceptron in self.perceptrons]
 
     @staticmethod
-    def _validate_perceptrons(perceptrons: Iterable[PerceptronService]) -> list[PerceptronService]:
+    def _validate_perceptrons(perceptrons: Iterable[Perceptron]) -> list[Perceptron]:
         if perceptrons is None:
-            raise TypeError("perceptrons must be an iterable of PerceptronService instances.")
+            raise TypeError("perceptrons must be an iterable of Perceptron instances.")
 
         perceptron_list = list(perceptrons)
 
         for perceptron in perceptron_list:
-            if not isinstance(perceptron, PerceptronService):
-                raise TypeError("perceptrons must contain only PerceptronService instances.")
+            if not isinstance(perceptron, Perceptron):
+                raise TypeError("perceptrons must contain only Perceptron instances.")
 
         return perceptron_list
