@@ -4,7 +4,19 @@ version = "0.1.0"
 description = "Neural network components implemented in Python."
 readme = "README.md"
 requires-python = ">=3.10"
+dependencies = ["numpy"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-watcher",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+[tool.pytest-watcher]
+now = true
+runner = "pytest"
+patterns = ["*.py", "pyproject.toml"]
