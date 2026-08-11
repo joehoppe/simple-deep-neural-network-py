@@ -1,11 +1,17 @@
-from neural_network.perceptron import (
-    Perceptron,
-    PerceptronLayer,
-    WeightNode,
+from neural_network.activation import (
+    Activation,
+    identity,
+    relu,
+    sigmoid,
+    tanh,
 )
+from neural_network.layer import Layer
 
 __all__ = [
-    "Perceptron",
-    "PerceptronLayer",
-    "WeightNode",
+    "Layer",
+    "Activation",
+    "sigmoid",
+    "relu",
+    "tanh",
+    "identity",
 ]
